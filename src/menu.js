@@ -33,7 +33,7 @@ export function iniciarMenu() {
                 console.log("\nEncerrando programa...");
                 return; // Sai do loop e encerra a função
             default:
-                console.log("\nOpcao invalida!"); // Caso o usuário digite algo errado
+                console.log("\nOpcao invalida!");
         }
     }
 }
