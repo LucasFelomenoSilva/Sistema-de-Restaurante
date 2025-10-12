@@ -179,3 +179,5 @@ export async function deletar(){
         rl.close()
     }
         }
+
+rl.close()
