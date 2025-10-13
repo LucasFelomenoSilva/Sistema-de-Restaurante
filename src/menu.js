@@ -1,46 +1,136 @@
-import readlineSync from "readline-sync"; // Biblioteca para ler entradas do usuário no terminal
-import Cliente from './cliente.js';      // Importa a classe Cliente
-import Pedido from './pedido.js';        // Importa a classe Pedido
+import readlineSync from 'readline-sync';
+import { Cliente, clientes } from './cliente.js';
+import Pedido, { pedidos, pedidosRápidos } from './pedido.js';
 
-// Criando instâncias das classes
 const cliente = new Cliente();
-const pedido = new Pedido();
 
-// Função principal que exibe o menu e processa as escolhas
 export function iniciarMenu() {
-    while (true) { // Loop infinito: continuará até o usuário escolher sair
-        // Exibe o menu
-        console.log("\n|1 - Cadastrar Cliente =-=|");
-        console.log("|2 - Listar Cliente =-=-=-|");
-        console.log("|3 - Criar Pedido =-=-=-=-|");
-        console.log("|4 - Listar Pedido =-=-=-=|");
-        console.log("|5 - Sair =-=-=-=-=-=-=-=-|");
+  let sair = false;
 
-        // Solicita a escolha do usuário
-        const resposta = readlineSync.question("Escolha uma opcao: ");
+  // Inicializa pedidos rápidos pré-definidos
+  Pedido.inicializarPedidosRapidos();
 
-        // Verifica a opção escolhida e chama o método correspondente
-        switch (resposta) {
-            case "1":
-                cliente.cadastrar(); // Chama o método de cadastro do cliente
-                break;
-            case "2":
-                cliente.listar();    // Chama o método para listar clientes
-                break;
-            case "3":
-                pedido.criar();      // Chama o método para criar pedido
-                break;
-            case "4":
-                pedido.listar();     // Chama o método para listar pedidos
-                break;
-            case "5":
-                console.log("\nEncerrando programa..."); // Mensagem de saída
-                return; // Sai do loop e encerra a função
-            default:
-                console.log("\nOpcao invalida!"); // Caso o usuário digite algo errado
-        }
+  while (!sair) {
+    console.log('\n=== MENU PRINCIPAL ===');
+    console.log('1 - Cadastrar Cliente');
+    console.log('2 - Listar Clientes');
+    console.log('3 - Gerenciar Pedidos');
+    console.log('4 - Sair');
+
+    const opcao = readlineSync.question('Escolha uma opcao: ');
+
+    switch (opcao) {
+      case '1':
+        cliente.cadastrar();
+        break;
+      case '2':
+        cliente.listar();
+        break;
+      case '3':
+        menuGerenciarPedidos();
+        break;
+      case '4':
+        console.log('Encerrando programa...');
+        sair = true;
+        break;
+      default:
+        console.log('Opcao invalida!');
     }
+  }
+
+  process.exit(0);
 }
 
-// Chama a função para iniciar o menu assim que o arquivo for executado
-iniciarMenu();""
+// Menu Gerenciar Pedidos
+function menuGerenciarPedidos() {
+  let voltar = false;
+
+  while (!voltar) {
+    console.log('\n=== GERENCIAR PEDIDOS ===');
+    console.log('1 - Listar Pedidos Pré-definidos');
+    console.log('2 - Criar Pedido Rápido');
+    console.log('3 - Fazer Novo Pedido (com Cliente)');
+    console.log('4 - Listar Pedidos');
+    console.log('5 - Finalizar Pedido');
+    console.log('6 - Voltar ao Menu Principal');
+
+    const opcao = readlineSync.question('Escolha uma opcao: ');
+
+    switch (opcao) {
+      case '1':
+        Pedido.listarRapidos();
+        break;
+      case '2':
+        Pedido.criarRapido();
+        break;
+      case '3':
+    if (clientes.length === 0) {
+        console.log('Nenhum cliente cadastrado!');
+    } else {
+        console.log('Clientes disponíveis:');
+        clientes.forEach((c) => console.log(`ID: ${c.id} | Nome: ${c.nome}`));
+        const id = parseInt(readlineSync.question('Escolha o ID do cliente: '), 10);
+        const clienteSelecionado = clientes.find((c) => c.id === id);
+
+        if (!clienteSelecionado) {
+            console.log('Cliente não encontrado!');
+        } else {
+            console.log('Deseja utilizar um pedido pre-definido ou criar um novo?');
+            console.log('1 - Usar Pedido Pre-definido');
+            console.log('2 - Criar Novo Pedido Personalizado');
+            const escolha = readlineSync.question('Escolha uma opcao: ');
+
+            if (escolha === '1') {
+                if (pedidosRápidos.length === 0) {
+                    console.log('Nenhum pedido pre-definido disponível!');
+                } else {
+                    console.log('Pedidos Pre-definidos:');
+                    pedidosRápidos.forEach((p) =>
+                        console.log(`ID:${p.id} | Itens: ${p.itens.map(i => i.nome).join(', ')} | Valor:${p.valor}`)
+                    );
+                    const pid = parseInt(readlineSync.question('Escolha o ID do pedido pré-definido: '), 10);
+                    const pedidoEscolhido = pedidosRápidos.find(p => p.id === pid);
+
+                    if (!pedidoEscolhido) {
+                        console.log('Pedido pre-definido não encontrado!');
+                    } else {
+                        const novoPedido = {
+                            id: pedidos.length + 1,
+                            cliente: clienteSelecionado,
+                            itens: pedidoEscolhido.itens,
+                            valor: pedidoEscolhido.valor,
+                            status: 'Pendente'
+                        };
+                        pedidos.push(novoPedido);
+                        console.log('Pedido criado com sucesso a partir do pre-definido!');
+                    }
+                }
+            } else if (escolha === '2') {
+                // Criar pedido personalizado
+                Pedido.criar(clienteSelecionado);
+            } else {
+                console.log('Opção inválida!');
+            }
+        }
+    }
+    break;
+
+      case '4':
+        Pedido.listarPendentes();
+        break;
+      case '5':
+        if (pedidos.length === 0) {
+            console.log('Não há pedidos pendentes para finalizar!');
+        } else {
+            const id = parseInt(readlineSync.question('Digite o ID do pedido a finalizar: '), 10);
+            Pedido.finalizar(id);
+        }
+        break;
+      case '6':
+        voltar = true;
+        break;
+      default:
+        console.log('Opcao invalida!');
+    }
+  }
+}
