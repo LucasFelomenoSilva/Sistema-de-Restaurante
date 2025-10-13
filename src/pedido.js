@@ -1,24 +1,28 @@
+//Criando classe Pedido
+// Atributos - id, cliente, itens, valor, status ..
+// Um pedido sempre deve sempre estar ligado a um cliente
+
 import { z } from 'zod';
 import readlineSync from 'readline-sync';
 
 export const pedidos = [];       // pedidos com cliente e status
 export const pedidosRápidos = []; 
 
-// Schema Zod
+//Crindo Schema de validação ZOD
 const ItemSchema = z.object({
   nome: z.string(),
-  valor: z.number().positive(),
+  valor: z.number().positive("Valor deve ser um numero positivo"), // Numero deve ser positivo
 });
 
 const PedidoSchema = z.object({
-  id: z.number().int(),
+  id: z.number().int(), //Numero tem que ser inteiro
   cliente: z.object({
     id: z.number(),
     nome: z.string(),
     telefone: z.number(),
   }),
-  itens: z.array(ItemSchema).min(1, 'Deve ter ao menos um item no pedido'),
-  valor: z.number().positive(),
+  itens: z.array(ItemSchema).min(1, 'Deve ter ao menos um item no pedido'), // Deve ter ao menos um item no pedido
+  valor: z.number().positive("Valor deve ser um numero positivo"), // Numero deve ser positivo
   status: z.string().default('Pendente'),
 });
 
@@ -28,6 +32,7 @@ const PedidoRapidoSchema = z.object({
   valor: z.number().positive(),
 });
 
+//Criando classe Pedido
 export default class Pedido {
   constructor(id, cliente, itens, valor, status) {
     this.id = id;
@@ -55,13 +60,15 @@ export default class Pedido {
     );
   }
 
-  // Criar pedido com cliente e status
+  // Método para criar pedido com cliente
+  // criarPedido(cliente, itens)
   static criar(clienteSelecionado) {
     if (!clienteSelecionado) {
       console.log('Nenhum cliente selecionado!');
       return;
     }
-
+    
+    // adicionar itens
     const itens = [];
     let adicionarMais = true;
     while (adicionarMais) {
@@ -73,8 +80,10 @@ export default class Pedido {
       adicionarMais = resp.toLowerCase() === 's';
     }
 
+    // calcular valor total
     const valorTotal = itens.reduce((total, item) => total + item.valor, 0);
 
+    // Unir os dados a validação ZOD
     const pedidoValido = PedidoSchema.parse({
       id: pedidos.length + 1,
       cliente: clienteSelecionado,
@@ -87,7 +96,7 @@ export default class Pedido {
     console.log('Pedido criado com sucesso!');
   }
 
-  // Criar pedido rápido (sem cliente)
+  // Método para criar pedido rápido (sem cliente)
   static criarRapido() {
     const itens = [];
     let adicionarMais = true;
@@ -112,6 +121,8 @@ export default class Pedido {
     console.log('Pedido rápido criado com sucesso!');
   }
 
+  // Método para listar pedidos pendentes
+  // listarPedidos()
   static listarPendentes() {
     if (pedidos.length === 0) {
       console.log('Nenhum pedido pendente!');
@@ -126,6 +137,7 @@ export default class Pedido {
     });
   }
 
+  // Método para listar pedidos rápidos
   static listarRapidos() {
     if (pedidosRápidos.length === 0) {
       console.log('Nenhum pedido rápido cadastrado!');
@@ -138,8 +150,11 @@ export default class Pedido {
     });
   }
 
+  // Metodo para finalizar pedido
+  // finalizarPedido()
+  // buscarPedidoPorId()
   static finalizar(id) {
-    const pedido = pedidos.find((p) => p.id === id);
+    const pedido = pedidos.find((p) => p.id === id); // buscarPedidoPorId()
     if (!pedido) {
       console.log('Pedido não encontrado!');
       return;
