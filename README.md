@@ -60,7 +60,7 @@ node main.js
 
     - Listar Pedidos Pendentes
 
-    - Finalizar Pedido
+    - Finalizar Pedidos
 
     - Voltar ao Menu Principal
 
